@@ -102,7 +102,8 @@ app.post('/fetch-user-profile', async(req, res)=>{
         // });
         const result = await octokit.request(`GET /users/${username}`, {
             username: username
-        })
+        });
+        console.log(result.data);
         res.render("user-profile",{flashMessage:{isFlash:true, "message":"Users git profile details fetch successfully!"}, gitHubProfile:result.data});
     }catch(err){
         token=undefined;
