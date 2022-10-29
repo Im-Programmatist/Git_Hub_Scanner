@@ -70,19 +70,13 @@ app.get('/', (req, res)=>{
 });
 
 app.get('/user-profile', async(req, res)=>{
-    try{
-        octokit.request('GET /user', {})
-        .then((result)=>{
-            res.render('user-profile', {flashMessage:{isFlash:true, "message":"Users git profile details fetch successfully!"}, showNewTokenFields:false,  gitHubProfile:result.data});
-        })
-        .catch((err)=>{
-            res.render('user-profile', {flashMessage:{isFlash:true, 'message':req.flash('message')},showNewTokenFields:true,  gitHubProfile:{}});
-        });       
-    }catch(err){
-        //token=undefined;
-        req.flash('message', "Token Expired! Please refresh token.");
-        res.redirect("/user-profile");
-    }   
+    octokit.request('GET /user', {})
+    .then((result)=>{
+        res.render('user-profile', {flashMessage:{isFlash:true, "message":"Users git profile details fetch successfully!"}, showNewTokenFields:false,  gitHubProfile:result.data});
+    })
+    .catch((err)=>{
+        res.render('user-profile', {flashMessage:{isFlash:true, 'message':req.flash('message')},showNewTokenFields:true,  gitHubProfile:{}});
+    });       
 });
 
 app.post('/fetch-user-profile', async(req, res)=>{
@@ -153,3 +147,14 @@ app.get('/git-repo-detail/:repo_name?/:owner?', async(req,res)=>{
         res.redirect("/user-profile");
     }
 });
+
+app.get('/webhook/:repo_name?/:owner?', async(req, res)=>{
+    const OWNER = req.params.owner;
+    const REPO = req.params.repo_name;
+    await octokit.request('GET /repos/{owner}/{repo}/hooks/', {
+        owner: OWNER,
+        repo: REPO
+    }).then((data)=>{
+        console.log("data: ",data);
+    }).catch((err)=>{console.log("err: ",err);});
+})
