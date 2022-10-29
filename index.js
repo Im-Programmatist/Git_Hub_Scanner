@@ -44,14 +44,18 @@ app.listen(PORT, 'localhost', (err, res)=>{
 
 // Octokit.js
 // https://github.com/octokit/core.js#readme
-let token = "";
-console.log("Aut token - ", process.env.GITHUB_ACCESS_TOKEN);
-const octokit = new Octokit({
-    //auth: process.env.GITHUB_ACCESS_TOKEN,
-    auth: token,
-    // Authorization: `token ${process.env.GITHUB_TOKEN}`,
-    // Accept: 'application/vnd.github.machine-man-preview+json'
-});
+var octokit;
+var token;
+const refreshToken = () =>{
+    console.log("Aut token - ", process.env.GITHUB_ACCESS_TOKEN);
+    octokit = new Octokit({
+        auth: token || process.env.GITHUB_ACCESS_TOKEN,
+        //auth: token,
+        // Authorization: `token ${process.env.GITHUB_TOKEN}`,
+        // Accept: 'application/vnd.github.machine-man-preview+json'
+    });
+}
+refreshToken();
 
 //Create API's 
 app.get('/', (req, res)=>{
@@ -72,38 +76,48 @@ app.get('/user-profile', async(req, res)=>{
 });
 
 app.post('/fetch-user-profile', async(req, res)=>{
-    const username = req.body.username || "Im-Programmatist";
-    token = req.body.accesstoken;
-
-    console.log("username is - ",username, typeof username === 'string');
-    //const result = await octokit.request('GET /user', {})
-    // const result = await octokit.request(`GET /users/${email}/hovercard`, {
-    //     username: email
-    // });
-    const result = await octokit.request(`GET /users/${username}`, {
-        username: username
-    })
-
-    res.render("user-profile",{flashMessage:{isFlash:true, "message":"Users git profile details fetch successfully!"}, gitHubProfile:result.data});   
+    try{
+        const username = req.body.username || "Im-Programmatist";
+        token = req.body.accesstoken;
+        refreshToken();
+        console.log("username is - ",username, typeof username === 'string');
+        //const result = await octokit.request('GET /user', {})
+        // const result = await octokit.request(`GET /users/${email}/hovercard`, {
+        //     username: email
+        // });
+        const result = await octokit.request(`GET /users/${username}`, {
+            username: username
+        })
+        res.render("user-profile",{flashMessage:{isFlash:true, "message":"Users git profile details fetch successfully!"}, gitHubProfile:result.data});
+    }catch(err){
+        token=undefined;
+        res.render("user-profile",{flashMessage:{isFlash:true, "message":"Token refresh failed"}});
+    }   
 });
 
 app.get('/git-repo-list', async(req, res)=>{
-
-    // const result = await octokit.request('GET /orgs/{org}/repos', {
-    //     org: 'ORG'
-    // })
-    const result = await octokit.request('GET /user/repos',{});
-    res.render('git-repo-list',{flashMessage:{isFlash:true, "message":"Users all git repositories listed below!"}, gitRepoList:result.data});
+    try{
+        const result = await octokit.request('GET /user/repos',{});
+        res.render('git-repo-list',{flashMessage:{isFlash:true, "message":"Users all git repositories listed below!"}, gitRepoList:result.data});
+    }catch(err){
+        token=undefined;
+        res.render("user-profile",{flashMessage:{isFlash:true, "message":"Token refresh failed"}});
+    }
 });
 
 app.get('/git-repo-detail/:repo_name?/:owner?', async(req,res)=>{
-    const OWNER = req.params.owner;
-    const REPO = req.params.repo_name;
-    const result = await octokit.request('GET /repos/{owner}/{repo}', {
-        owner: OWNER,
-        repo: REPO
-    });
-    //console.log(Object.getOwnPropertyNames(result.data));
-   
-    res.render('git-repo-details', {gitRepoDetails: result.data});
+    try{
+        const OWNER = req.params.owner;
+        const REPO = req.params.repo_name;
+        const result = await octokit.request('GET /repos/{owner}/{repo}', {
+            owner: OWNER,
+            repo: REPO
+        });
+        //console.log(Object.getOwnPropertyNames(result.data));
+    
+        res.render('git-repo-details', {gitRepoDetails: result.data});
+    }catch(err){
+        token=undefined;
+        res.render("user-profile",{flashMessage:{isFlash:true, "message":"Token refresh failed"}});
+    }
 });
