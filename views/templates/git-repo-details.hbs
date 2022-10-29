@@ -1,0 +1,42 @@
+{{>header}}
+{{>navbar}}
+{{>flash}} 
+    <div id="fh5co-consult">
+		<div class="choose animate-box">
+			<h2>Git Repository Details </h2>
+			<form>
+				<div class="row form-group">
+					<div class="col-md-12">
+						<input type="text" placeholder="Repository Name" value="{{gitRepoDetails.name}}" readonly>
+					</div>
+				</div>
+				<div class="row form-group">
+					<div class="col-md-12">
+						<input type="text" placeholder="Repository Size" value="{{gitRepoDetails.size}}" readonly>
+					</div>
+				</div>
+				<div class="row form-group">
+					<div class="col-md-12">
+						<input type="text" placeholder="Repository Private" value="{{alterClass gitRepoDetails.private 'It is public repo' : 'It is Private Repo'}}" readonly>
+					</div>
+				</div>
+				<div class="row form-group">
+					<div class="col-md-12">
+						<input type="text" placeholder="Repository Owner" value="{{gitRepoDetails.owner.login}}" readonly>
+					</div>
+				</div>
+				<div class="row form-group">
+					<div class="col-md-12">
+						<input type="text" placeholder="Number of files in the repo" readonly>
+					</div>
+				</div>
+
+				<div class="row form-group">
+					<div class="col-md-12">
+						<textarea name="contact_message" id="contact_message" cols="30" rows="10" class="form-control" placeholder="File Content">{{gitRepoDetails.fileContent}}</textarea>
+					</div>
+				</div>
+			</form>	
+		</div>
+	</div>
+{{>footer}}

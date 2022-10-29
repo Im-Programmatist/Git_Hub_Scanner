@@ -1,0 +1,46 @@
+{{>header}}
+{{>navbar}}
+{{>flash}}
+	<div id="fh5co-resume" class="fh5co-bg-color">
+		<div class="container">
+			<div class="row animate-box">
+				<div class="col-md-8 col-md-offset-2 text-center fh5co-heading">
+					<h2>GitHub Repository List</h2>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-12 col-md-offset-0">
+					<ul class="timeline">
+						<li class="timeline-heading text-center animate-box">
+							<div><h3> Public Repository </h3></div>
+						</li>
+						{{#each gitRepoList}}
+						<li class="animate-box {{ alterClass @index 'timeline-unverted' 'timeline-inverted' }}">
+							<div class="timeline-badge"><i class="icon-suitcase"></i></div>
+							<div class="timeline-panel">
+								<div class="timeline-heading">
+									<h3 class="timeline-title">{{name}}</h3>
+									<span class="company">Size - {{size}}</span>
+								</div>
+								<div class="timeline-body">
+									<p>
+										<span>Owner - {{ owner.login }}</span><br/>
+										<span>Owner Github Url - {{ owner.html_url }}</span><br/>
+										<span>Git Repo URL - {{git_url}}</span>
+										<span>Git Repo Content URL - {{contents_url}}</span>
+										<span>Git Repo Hook URL - {{hooks_url}}</span>
+										<span>URL - {{url}}</span>
+										<span>Keys URL - {{keys_url}}</span>
+									</p>
+									<a href="/git-repo-detail/{{name}}/{{ owner.login }}">Check Details</a>
+								</div>
+							</div>
+						</li>
+						{{/each}}
+			    	</ul>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+{{>footer}}
