@@ -20,15 +20,6 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 
-// Octokit.js
-// https://github.com/octokit/core.js#readme
-console.log("Aut token - ", process.env.GITHUB_ACCESS_TOKEN);
-const octokit = new Octokit({
-    auth: process.env.GITHUB_ACCESS_TOKEN,
-    // Authorization: `token ${process.env.GITHUB_TOKEN}`,
-    // Accept: 'application/vnd.github.machine-man-preview+json'
-})
-
 //Use hbs template engine and static paths
 const static_path = path.join(__dirname, "/public");  //find index.html inside public if not found then run template/index.hbs
 const template_path = path.join(__dirname, "views/templates");
@@ -51,6 +42,17 @@ app.listen(PORT, 'localhost', (err, res)=>{
     console.log(`Application running on port http://localhost:${PORT}`);
 });
 
+// Octokit.js
+// https://github.com/octokit/core.js#readme
+let token = "";
+console.log("Aut token - ", process.env.GITHUB_ACCESS_TOKEN);
+const octokit = new Octokit({
+    //auth: process.env.GITHUB_ACCESS_TOKEN,
+    auth: token,
+    // Authorization: `token ${process.env.GITHUB_TOKEN}`,
+    // Accept: 'application/vnd.github.machine-man-preview+json'
+});
+
 //Create API's 
 app.get('/', (req, res)=>{
     // res.writeHead(200,{'Content-Type': 'application/json'});
@@ -60,16 +62,19 @@ app.get('/', (req, res)=>{
 });
 
 app.get('/user-profile', async(req, res)=>{
-    const result = await octokit.request('GET /user', {})
-    // const result = await octokit.request(`GET /users/${email}/hovercard`, {
-    //     username: email
-    // });
-    console.log(result.data);
-    res.render('user-profile', {flashMessage:{isFlash:true, "message":"Users git profile details fetch successfully!"}, gitHubProfile:result.data});
+    // const result = await octokit.request('GET /user', {})
+    // // const result = await octokit.request(`GET /users/${email}/hovercard`, {
+    // //     username: email
+    // // });
+    // console.log(result.data);
+    // res.render('user-profile', {flashMessage:{isFlash:true, "message":"Users git profile details fetch successfully!"}, gitHubProfile:result.data});
+    res.render('user-profile', {flashMessage:{isFlash:true},  gitHubProfile:{}});
 });
 
 app.post('/fetch-user-profile', async(req, res)=>{
     const username = req.body.username || "Im-Programmatist";
+    token = req.body.accesstoken;
+
     console.log("username is - ",username, typeof username === 'string');
     //const result = await octokit.request('GET /user', {})
     // const result = await octokit.request(`GET /users/${email}/hovercard`, {
@@ -78,7 +83,7 @@ app.post('/fetch-user-profile', async(req, res)=>{
     const result = await octokit.request(`GET /users/${username}`, {
         username: username
     })
-    console.log("result - ",result.data);
+
     res.render("user-profile",{flashMessage:{isFlash:true, "message":"Users git profile details fetch successfully!"}, gitHubProfile:result.data});   
 });
 
@@ -98,8 +103,7 @@ app.get('/git-repo-detail/:repo_name?/:owner?', async(req,res)=>{
         owner: OWNER,
         repo: REPO
     });
-    console.log(typeof(result.data));
-    console.log(Object.getOwnPropertyNames(result.data));
+    //console.log(Object.getOwnPropertyNames(result.data));
    
     res.render('git-repo-details', {gitRepoDetails: result.data});
 });
