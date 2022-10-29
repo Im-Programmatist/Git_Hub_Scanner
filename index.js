@@ -74,13 +74,20 @@ app.get('/', (req, res)=>{
 });
 
 app.get('/user-profile', async(req, res)=>{
-    // const result = await octokit.request('GET /user', {})
-    // // const result = await octokit.request(`GET /users/${email}/hovercard`, {
-    // //     username: email
-    // // });
-    // console.log(result.data);
-    // res.render('user-profile', {flashMessage:{isFlash:true, "message":"Users git profile details fetch successfully!"}, gitHubProfile:result.data});
-    res.render('user-profile', {flashMessage:{isFlash:true, 'message':req.flash('message')},  gitHubProfile:{}});
+    try{
+        octokit.request('GET /user', {})
+        .then((result)=>{
+            console.log(result.data);
+            res.render('user-profile', {flashMessage:{isFlash:true, "message":"Users git profile details fetch successfully!"}, gitHubProfile:result.data});
+        })
+        .catch((err)=>{
+            res.render('user-profile', {flashMessage:{isFlash:true, 'message':req.flash('message')},  gitHubProfile:{}});
+        });       
+    }catch(err){
+        token=undefined;
+        req.flash('message', "Token Expired! Please refresh token.");
+        res.redirect("/user-profile");
+    }   
 });
 
 app.post('/fetch-user-profile', async(req, res)=>{
