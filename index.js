@@ -1,11 +1,8 @@
-import express, { application } from 'express';
-import https from "https";
-import axios from 'axios';
-import fs from 'fs';
+import express from 'express';
 //Template engine used to present data in browser
 import hbs from 'hbs';
 //Package used to get details(user profile) from github  
-import { Octokit, App } from "octokit";
+import { Octokit } from "octokit";
 //to keep common data
 import dotenv from 'dotenv';
 dotenv.config({path: './.env'});
@@ -25,8 +22,11 @@ app.use(express.urlencoded({extended: true}));
 
 // Octokit.js
 // https://github.com/octokit/core.js#readme
+console.log("Aut token - ", process.env.GITHUB_ACCESS_TOKEN);
 const octokit = new Octokit({
-    auth: process.env.GITHUB_ACCESS_TOKEN
+    auth: process.env.GITHUB_ACCESS_TOKEN,
+    // Authorization: `token ${process.env.GITHUB_TOKEN}`,
+    // Accept: 'application/vnd.github.machine-man-preview+json'
 })
 
 //Use hbs template engine and static paths
@@ -94,33 +94,12 @@ app.get('/git-repo-list', async(req, res)=>{
 app.get('/git-repo-detail/:repo_name?/:owner?', async(req,res)=>{
     const OWNER = req.params.owner;
     const REPO = req.params.repo_name;
-    const file_name = 'text.txt';
     const result = await octokit.request('GET /repos/{owner}/{repo}', {
         owner: OWNER,
         repo: REPO
     });
-    console.log(result.data.contents_url);
-    // console.log(typeof(result.data));
-    // console.log(Object.getOwnPropertyNames(result.data));
-
-    axios.get(`https://api.github.com/repos/${OWNER}/${REPO}/git/trees/developer?recursive=1`)
-    .then((data)=>{
-        console.log(typeof(data));
-        console.log(data["tree"]);
-    })
-    .catch((err)=>{
-        console.log(err);
-    })
-
-    axios.get(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${file_name}?ref=developer`)
-    .then((res) => {
-        console.log("***********",res.data.content);
-        console.log("***************");
-        let buff = new Buffer(res.data.content, 'base64');
-        let text = buff.toString('ascii');
-        console.log("text : ", text);
-        result.data.fileContent = text;
-        res.render('git-repo-details', {gitRepoDetails: result.data});
-    }).catch((err) =>  {result.data.fileContent = "This repository dont have read me file", res.render('git-repo-details', {gitRepoDetails: result.data});});
-
+    console.log(typeof(result.data));
+    console.log(Object.getOwnPropertyNames(result.data));
+   
+    res.render('git-repo-details', {gitRepoDetails: result.data});
 });
