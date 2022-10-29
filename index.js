@@ -3,6 +3,7 @@ import express from 'express';
 import hbs from 'hbs';
 import flash from 'connect-flash';
 import session from'express-session';
+import axios from 'axios';
 //Package used to get details(user profile) from github  
 import { Octokit } from "octokit";
 //to keep common data
@@ -14,7 +15,6 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-console.log("Current project directory is -: ",__dirname);
 
 //Create a instance of express library
 const app = express();
@@ -55,7 +55,6 @@ app.listen(PORT, 'localhost', (err, res)=>{
 var octokit;
 var token;
 const refreshToken = () =>{
-    console.log("Aut token - ", process.env.GITHUB_ACCESS_TOKEN);
     octokit = new Octokit({
         auth: token || process.env.GITHUB_ACCESS_TOKEN,
         //auth: token,
@@ -67,9 +66,6 @@ refreshToken();
 
 //Create API's 
 app.get('/', (req, res)=>{
-    // res.writeHead(200,{'Content-Type': 'application/json'});
-    // res.write("Welcome To Git Scanner");
-    // res.end();
     res.render('index');
 });
 
@@ -77,14 +73,13 @@ app.get('/user-profile', async(req, res)=>{
     try{
         octokit.request('GET /user', {})
         .then((result)=>{
-            console.log(result.data);
-            res.render('user-profile', {flashMessage:{isFlash:true, "message":"Users git profile details fetch successfully!"}, gitHubProfile:result.data});
+            res.render('user-profile', {flashMessage:{isFlash:true, "message":"Users git profile details fetch successfully!"}, showNewTokenFields:false,  gitHubProfile:result.data});
         })
         .catch((err)=>{
-            res.render('user-profile', {flashMessage:{isFlash:true, 'message':req.flash('message')},  gitHubProfile:{}});
+            res.render('user-profile', {flashMessage:{isFlash:true, 'message':req.flash('message')},showNewTokenFields:true,  gitHubProfile:{}});
         });       
     }catch(err){
-        token=undefined;
+        //token=undefined;
         req.flash('message', "Token Expired! Please refresh token.");
         res.redirect("/user-profile");
     }   
@@ -95,7 +90,6 @@ app.post('/fetch-user-profile', async(req, res)=>{
         const username = req.body.username || "Im-Programmatist";
         token = req.body.accesstoken || process.env.GITHUB_ACCESS_TOKEN;
         refreshToken();
-        console.log("username is - ",username, typeof username === 'string');
         //const result = await octokit.request('GET /user', {})
         // const result = await octokit.request(`GET /users/${email}/hovercard`, {
         //     username: email
@@ -103,10 +97,9 @@ app.post('/fetch-user-profile', async(req, res)=>{
         const result = await octokit.request(`GET /users/${username}`, {
             username: username
         });
-        console.log(result.data);
         res.render("user-profile",{flashMessage:{isFlash:true, "message":"Users git profile details fetch successfully!"}, gitHubProfile:result.data});
     }catch(err){
-        token=undefined;
+        //token=undefined;
         req.flash('message', "Token Expired! Please refresh token.");
         res.redirect("/user-profile");
     }   
@@ -114,10 +107,11 @@ app.post('/fetch-user-profile', async(req, res)=>{
 
 app.get('/git-repo-list', async(req, res)=>{
     try{
+        refreshToken();
         const result = await octokit.request('GET /user/repos',{});
         res.render('git-repo-list',{flashMessage:{isFlash:true, "message":"Users all git repositories listed below!"}, gitRepoList:result.data});
     }catch(err){
-        token=undefined;
+        //token=undefined;
         req.flash('message', "Token Expired! Please refresh token.");
         res.redirect("/user-profile");
     }
@@ -131,11 +125,30 @@ app.get('/git-repo-detail/:repo_name?/:owner?', async(req,res)=>{
             owner: OWNER,
             repo: REPO
         });
-        //console.log(Object.getOwnPropertyNames(result.data));
-    
+        await octokit.request('GET /repos/{owner}/{repo}/contents/{path}?ref=developer', {
+            owner: OWNER,
+            repo: REPO,
+            path: "README.md"
+        }).then((data)=>{
+            let buff = new Buffer( data.data.content, 'base64');
+            let text = buff.toString('ascii');
+            result.data.fileContent = text || "";
+        }).catch((err)=>{
+            result.data.fileContent = err.message;
+        });
+        
+        await axios.get(`https://api.github.com/repos/${OWNER}/${REPO}/contents/`)
+        .then((res) => {
+            result.data.noOfFiles = res.data.length;           
+        }).catch((err) =>  {
+            result.data.noOfFiles = 0;
+        });
+        
         res.render('git-repo-details', {gitRepoDetails: result.data});
+
     }catch(err){
-        token=undefined;
+        console.log(err);
+        //token=undefined;
         req.flash('message', "Token Expired! Please refresh token.");
         res.redirect("/user-profile");
     }

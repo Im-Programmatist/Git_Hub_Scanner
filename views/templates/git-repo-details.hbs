@@ -7,32 +7,38 @@
 			<form>
 				<div class="row form-group">
 					<div class="col-md-12">
-						<input type="text" placeholder="Repository Name" value="{{gitRepoDetails.name}}" readonly>
+						<input type="text" placeholder="Repository Name" value="Repo Name -{{ gitRepoDetails.name}}" readonly>
 					</div>
 				</div>
 				<div class="row form-group">
 					<div class="col-md-12">
-						<input type="text" placeholder="Repository Size" value="{{gitRepoDetails.size}}" readonly>
+						<input type="text" placeholder="Repository Size" value="Repo Size -{{ gitRepoDetails.size}}" readonly>
 					</div>
 				</div>
 				<div class="row form-group">
 					<div class="col-md-12">
-						<input type="text" placeholder="Repository Private" value="{{alterClass gitRepoDetails.private 'It is public repo' : 'It is Private Repo'}}" readonly>
+						<input type="text" placeholder="Repository Private" value="Repo Type - {{ alterClass gitRepoDetails.private 'It is public repo' : 'It is Private Repo'}}" readonly>
 					</div>
 				</div>
 				<div class="row form-group">
 					<div class="col-md-12">
-						<input type="text" placeholder="Repository Owner" value="{{gitRepoDetails.owner.login}}" readonly>
+						<input type="text" placeholder="Repository Owner" value="Repo Owner - {{ gitRepoDetails.owner.login}}" readonly>
 					</div>
 				</div>
 				<div class="row form-group">
 					<div class="col-md-12">
-						<input type="text" placeholder="Number of files in the repo" readonly>
+						<input type="text" placeholder="Repository Owner" value="Repo Hook Active - {{ gitRepoDetails.hooks_url}}" readonly>
+					</div>
+				</div>
+				<div class="row form-group">
+					<div class="col-md-12">
+						<input type="text" placeholder="Number of files in the repo" value="No Of Files - {{ gitRepoDetails.noOfFiles }}" readonly>
 					</div>
 				</div>
 
 				<div class="row form-group">
 					<div class="col-md-12">
+						<span>Content In Read Me file - </span>
 						<textarea name="contact_message" id="contact_message" cols="30" rows="10" class="form-control" placeholder="File Content">{{gitRepoDetails.fileContent}}</textarea>
 					</div>
 				</div>
