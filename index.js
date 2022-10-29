@@ -1,6 +1,8 @@
 import express from 'express';
 //Template engine used to present data in browser
 import hbs from 'hbs';
+import flash from 'connect-flash';
+import session from'express-session';
 //Package used to get details(user profile) from github  
 import { Octokit } from "octokit";
 //to keep common data
@@ -19,6 +21,12 @@ const app = express();
 //Use middleware in express to get data from request perticularly from post methoid and encode it 
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
+app.use(session({
+    secret: 'abcdefgf1234569',
+    resave: false,
+    saveUninitialized: false
+}));
+app.use(flash());
 
 //Use hbs template engine and static paths
 const static_path = path.join(__dirname, "/public");  //find index.html inside public if not found then run template/index.hbs
@@ -72,13 +80,13 @@ app.get('/user-profile', async(req, res)=>{
     // // });
     // console.log(result.data);
     // res.render('user-profile', {flashMessage:{isFlash:true, "message":"Users git profile details fetch successfully!"}, gitHubProfile:result.data});
-    res.render('user-profile', {flashMessage:{isFlash:true},  gitHubProfile:{}});
+    res.render('user-profile', {flashMessage:{isFlash:true, 'message':req.flash('message')},  gitHubProfile:{}});
 });
 
 app.post('/fetch-user-profile', async(req, res)=>{
     try{
         const username = req.body.username || "Im-Programmatist";
-        token = req.body.accesstoken;
+        token = req.body.accesstoken || process.env.GITHUB_ACCESS_TOKEN;
         refreshToken();
         console.log("username is - ",username, typeof username === 'string');
         //const result = await octokit.request('GET /user', {})
@@ -91,7 +99,8 @@ app.post('/fetch-user-profile', async(req, res)=>{
         res.render("user-profile",{flashMessage:{isFlash:true, "message":"Users git profile details fetch successfully!"}, gitHubProfile:result.data});
     }catch(err){
         token=undefined;
-        res.render("user-profile",{flashMessage:{isFlash:true, "message":"Token refresh failed"}});
+        req.flash('message', "Token Expired! Please refresh token.");
+        res.redirect("/user-profile");
     }   
 });
 
@@ -101,7 +110,8 @@ app.get('/git-repo-list', async(req, res)=>{
         res.render('git-repo-list',{flashMessage:{isFlash:true, "message":"Users all git repositories listed below!"}, gitRepoList:result.data});
     }catch(err){
         token=undefined;
-        res.render("user-profile",{flashMessage:{isFlash:true, "message":"Token refresh failed"}});
+        req.flash('message', "Token Expired! Please refresh token.");
+        res.redirect("/user-profile");
     }
 });
 
@@ -118,6 +128,7 @@ app.get('/git-repo-detail/:repo_name?/:owner?', async(req,res)=>{
         res.render('git-repo-details', {gitRepoDetails: result.data});
     }catch(err){
         token=undefined;
-        res.render("user-profile",{flashMessage:{isFlash:true, "message":"Token refresh failed"}});
+        req.flash('message', "Token Expired! Please refresh token.");
+        res.redirect("/user-profile");
     }
 });
