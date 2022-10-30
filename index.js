@@ -44,8 +44,8 @@ hbs.registerHelper('alterClass', function(index) {
 });
 
 //Prepare server to listen
-const PORT  = process.env.PORT || 4040;
-app.listen(PORT, 'localhost', (err, res)=>{
+const PORT  = process.env.PORT || 3001;
+app.listen(PORT, '0.0.0.0', (err, res)=>{
     if(err) throw err;
     console.log(`Application running on port http://localhost:${PORT}`);
 });
@@ -102,7 +102,7 @@ app.post('/fetch-user-profile', async(req, res)=>{
 app.get('/git-repo-list', async(req, res)=>{
     try{
         refreshToken();
-        const result = await octokit.request('GET /user/repos',{});
+        const result = await octokit.request('GET /user/repos',{ type :'all'});
         res.render('git-repo-list',{flashMessage:{isFlash:true, "message":"Users all git repositories listed below!"}, gitRepoList:result.data});
     }catch(err){
         //token=undefined;
@@ -151,6 +151,7 @@ app.get('/git-repo-detail/:repo_name?/:owner?', async(req,res)=>{
 app.get('/webhook/:repo_name?/:owner?', async(req, res)=>{
     const OWNER = req.params.owner;
     const REPO = req.params.repo_name;
+    console.log(token);
     await octokit.request('GET /repos/{owner}/{repo}/hooks/', {
         owner: OWNER,
         repo: REPO
